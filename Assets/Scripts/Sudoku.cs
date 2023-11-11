@@ -21,8 +21,6 @@ public class Sudoku : MonoBehaviour {
     List<int> nums = new List<int>();
 
 
-
-
     float r = 1.0594f;
     float frequency = 440;
     float increment;
@@ -52,7 +50,6 @@ public class Sudoku : MonoBehaviour {
 
     void ClearBoard()
     {
-
         mySolution.Clear();
         _createdMatrix = new Matrix<int>(_bigSide, _bigSide);
         foreach (var cell in _board)
@@ -79,9 +76,6 @@ public class Sudoku : MonoBehaviour {
             }
         }
     }
-
-
-
 
     bool RecuSolve(Matrix<int> matrixParent, int x, int y, int protectMaxDepth, List<Matrix<int>> solution)
     {
@@ -123,7 +117,6 @@ public class Sudoku : MonoBehaviour {
         return false;
     }
 
-
     void changeFreq(int num)
     {
         frequency = 440 + num * 80;
@@ -140,8 +133,6 @@ public class Sudoku : MonoBehaviour {
         }
 
     }
-
-
     void SolvedSudoku()
     {
         StopAllCoroutines();
@@ -155,7 +146,6 @@ public class Sudoku : MonoBehaviour {
 
         StartCoroutine(ShowSequence(mySolution));
     }
-
     void CreateSudoku()
     {
         StopAllCoroutines();
@@ -193,7 +183,6 @@ public class Sudoku : MonoBehaviour {
             mtx[k, 0] = aux[k];
         }
     }
-
     void ShuffleList<T>(List<T> list)
     {
         int n = list.Count;
@@ -207,7 +196,6 @@ public class Sudoku : MonoBehaviour {
             list[n] = value;
         }
     }
-
     void ApplyStep(Matrix<int> step)
     {
         for (int y = 0; y < _board.Height; y++)
@@ -221,7 +209,6 @@ public class Sudoku : MonoBehaviour {
             }
         }
     }
-
     void ClearUnlocked(Matrix<int> mtx)
     {
         for (int i = 0; i < _board.Height; i++)
@@ -233,7 +220,6 @@ public class Sudoku : MonoBehaviour {
             }
         }
     }
-
     void LockRandomCells()
     {
         List<Vector2> posibles = new List<Vector2>();
@@ -263,7 +249,6 @@ public class Sudoku : MonoBehaviour {
             }
         }
     }
-
     void TranslateSpecific(int value, int x, int y)
     {
         _board[x, y].number = value;
@@ -284,7 +269,6 @@ public class Sudoku : MonoBehaviour {
         _createdMatrix = new Matrix<int>(Tests.validBoards[1]);
         TranslateAllValues(_createdMatrix);
     }
-
     bool CanPlaceValue(Matrix<int> mtx, int value, int x, int y)
     {
         List<int> fila = new List<int>();
@@ -302,8 +286,6 @@ public class Sudoku : MonoBehaviour {
                 else if (i == y && j != x) fila.Add(mtx[j, i]);
             }
         }
-
-
 
         cuadrante.x = (int)(x / 3);
 
@@ -332,8 +314,6 @@ public class Sudoku : MonoBehaviour {
         else
             return true;
     }
-
-
     List<int> FilterZeros(List<int> list)
     {
         List<int> aux = new List<int>();
