@@ -19,12 +19,15 @@ public class Sudoku : MonoBehaviour {
     string memory = "";
     string canSolve = "";
     List<int> nums = new List<int>();
-
+    List<int> posibles = new List<int>();
+    bool canPlayMusic = false;
 
     float r = 1.0594f;
     float frequency = 440;
+    float gain = 0.5f;
     float increment;
     float phase;
+    float samplingF = 48000;
 
     int watchdog = 0;
 
@@ -42,10 +45,14 @@ public class Sudoku : MonoBehaviour {
     }
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R) || Input.GetMouseButtonDown(1))
-            SolvedSudoku();
-        else if (Input.GetKeyDown(KeyCode.C) || Input.GetMouseButtonDown(0))
-            CreateSudoku();
+        if (Input.GetKeyDown(KeyCode.S)) SolvedSudoku();
+        else if (Input.GetKeyDown(KeyCode.C)) CreateSudoku();
+        else if (Input.GetKeyDown(KeyCode.R)) RecuSolve(_createdMatrix, 0, 0, 1, new List<Matrix<int>>());
+        else if (Input.GetKeyDown(KeyCode.A))
+        {
+            ClearBoard();
+            CreateEmptyBoard();
+        }
     }
 
     void ClearBoard()
@@ -87,14 +94,12 @@ public class Sudoku : MonoBehaviour {
             if (y == _bigSide)
             {
                 solution.Add(matrixParent.Clone());
+                StartCoroutine(ShowSequence(solution));
                 return true;
             }
         }
 
-        if (matrixParent[x, y] != 0)
-        {
-            return RecuSolve(matrixParent, x + 1, y, protectMaxDepth, solution);
-        }
+        if (matrixParent[x, y] != 0) return RecuSolve(matrixParent, x + 1, y, protectMaxDepth, solution);
 
         List<int> values = new List<int>(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
         ShuffleList(values);
@@ -104,12 +109,13 @@ public class Sudoku : MonoBehaviour {
             if (CanPlaceValue(matrixParent, value, x, y))
             {
                 matrixParent[x, y] = value;
-
+                
                 if (RecuSolve(matrixParent, x + 1, y, protectMaxDepth, solution))
                 {
+                    watchdog++;
+                    solution.Add(matrixParent.Clone());
                     return true;
                 }
-
                 matrixParent[x, y] = 0;
             }
         }
@@ -117,6 +123,19 @@ public class Sudoku : MonoBehaviour {
         return false;
     }
 
+    void OnAudioFilterRead(float[] array, int channels)
+    {
+        if (canPlayMusic)
+        {
+            increment = frequency * Mathf.PI / samplingF;
+            for (int i = 0; i < array.Length; i++)
+            {
+                phase = phase + increment;
+                array[i] = (float)(gain * Mathf.Sin((float)phase));
+            }
+        }
+
+    }
     void changeFreq(int num)
     {
         frequency = 440 + num * 80;
@@ -126,16 +145,18 @@ public class Sudoku : MonoBehaviour {
     {
         for (int i = 0; i < seq.Count; i++)
         {
-            ApplyStep(mySolution[i]);
+            ApplyStep(seq[i]);
             feedback.text = string.Format("Pasos: {0}/{1} - {2} - {3}", i + 1, seq.Count, memory, canSolve);
 
             yield return new WaitForSeconds(stepDuration);
         }
 
     }
+
     void SolvedSudoku()
     {
         StopAllCoroutines();
+        CreateSudoku();
         nums = new List<int>();
         watchdog = 100000;
         var result = RecuSolve(_createdMatrix, 0, 0, difficulty, mySolution);
@@ -143,9 +164,8 @@ public class Sudoku : MonoBehaviour {
         memory = string.Format("MEM: {0:f2}MB", mem / (1024f * 1024f));
         canSolve = result ? " VALID" : " INVALID";
         feedback.text = "Pasos: " + mySolution.Count + "/" + mySolution.Count + " - " + memory + " - " + canSolve;
-
-        StartCoroutine(ShowSequence(mySolution));
     }
+
     void CreateSudoku()
     {
         StopAllCoroutines();
@@ -183,6 +203,7 @@ public class Sudoku : MonoBehaviour {
             mtx[k, 0] = aux[k];
         }
     }
+
     void ShuffleList<T>(List<T> list)
     {
         int n = list.Count;
@@ -196,6 +217,7 @@ public class Sudoku : MonoBehaviour {
             list[n] = value;
         }
     }
+
     void ApplyStep(Matrix<int> step)
     {
         for (int y = 0; y < _board.Height; y++)
@@ -209,6 +231,7 @@ public class Sudoku : MonoBehaviour {
             }
         }
     }
+
     void ClearUnlocked(Matrix<int> mtx)
     {
         for (int i = 0; i < _board.Height; i++)
@@ -220,6 +243,7 @@ public class Sudoku : MonoBehaviour {
             }
         }
     }
+
     void LockRandomCells()
     {
         List<Vector2> posibles = new List<Vector2>();
@@ -249,6 +273,7 @@ public class Sudoku : MonoBehaviour {
             }
         }
     }
+
     void TranslateSpecific(int value, int x, int y)
     {
         _board[x, y].number = value;
@@ -269,6 +294,7 @@ public class Sudoku : MonoBehaviour {
         _createdMatrix = new Matrix<int>(Tests.validBoards[1]);
         TranslateAllValues(_createdMatrix);
     }
+
     bool CanPlaceValue(Matrix<int> mtx, int value, int x, int y)
     {
         List<int> fila = new List<int>();
@@ -286,6 +312,8 @@ public class Sudoku : MonoBehaviour {
                 else if (i == y && j != x) fila.Add(mtx[j, i]);
             }
         }
+
+
 
         cuadrante.x = (int)(x / 3);
 

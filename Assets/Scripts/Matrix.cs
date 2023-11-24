@@ -17,6 +17,7 @@ public class Matrix<T> : IEnumerable<T>
         _myWidth = width;
         _myHeight = height;
     }
+
     public Matrix(T[,] copyFrom)
     {
         int width = copyFrom.GetLength(0);
@@ -33,6 +34,7 @@ public class Matrix<T> : IEnumerable<T>
         _myWidth = width;
         _myHeight = height;
     }
+
     public Matrix<T> Clone()
     {
         Matrix<T> aux = new Matrix<T>(Width, Height);
@@ -47,6 +49,8 @@ public class Matrix<T> : IEnumerable<T>
 
 
     }
+
+
     public void SetRangeTo(int x0, int y0, int x1, int y1, T item)
     {
         for (int i = x0; i <= x1; i++)
