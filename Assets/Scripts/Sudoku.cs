@@ -47,7 +47,6 @@ public class Sudoku : MonoBehaviour {
     {
         if (Input.GetKeyDown(KeyCode.S)) SolvedSudoku();
         else if (Input.GetKeyDown(KeyCode.C)) CreateSudoku();
-        else if (Input.GetKeyDown(KeyCode.R)) RecuSolve(_createdMatrix, 0, 0, 1, new List<Matrix<int>>());
         else if (Input.GetKeyDown(KeyCode.A))
         {
             ClearBoard();
@@ -94,12 +93,15 @@ public class Sudoku : MonoBehaviour {
             if (y == _bigSide)
             {
                 solution.Add(matrixParent.Clone());
-                StartCoroutine(ShowSequence(solution));
                 return true;
             }
         }
 
-        if (matrixParent[x, y] != 0) return RecuSolve(matrixParent, x + 1, y, protectMaxDepth, solution);
+        if (matrixParent[x, y] != 0)
+        {
+            return RecuSolve(matrixParent, x + 1, y, protectMaxDepth, solution);
+        }
+
 
         List<int> values = new List<int>(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
         ShuffleList(values);
@@ -109,11 +111,10 @@ public class Sudoku : MonoBehaviour {
             if (CanPlaceValue(matrixParent, value, x, y))
             {
                 matrixParent[x, y] = value;
-                
+                watchdog++;
+                solution.Add(matrixParent.Clone());
                 if (RecuSolve(matrixParent, x + 1, y, protectMaxDepth, solution))
                 {
-                    watchdog++;
-                    solution.Add(matrixParent.Clone());
                     return true;
                 }
                 matrixParent[x, y] = 0;
@@ -156,7 +157,6 @@ public class Sudoku : MonoBehaviour {
     void SolvedSudoku()
     {
         StopAllCoroutines();
-        CreateSudoku();
         nums = new List<int>();
         watchdog = 100000;
         var result = RecuSolve(_createdMatrix, 0, 0, difficulty, mySolution);
@@ -164,6 +164,8 @@ public class Sudoku : MonoBehaviour {
         memory = string.Format("MEM: {0:f2}MB", mem / (1024f * 1024f));
         canSolve = result ? " VALID" : " INVALID";
         feedback.text = "Pasos: " + mySolution.Count + "/" + mySolution.Count + " - " + memory + " - " + canSolve;
+
+        StartCoroutine(ShowSequence(mySolution));
     }
 
     void CreateSudoku()
@@ -174,10 +176,10 @@ public class Sudoku : MonoBehaviour {
         watchdog = 100000;
         GenerateValidLine(_createdMatrix, 0, 0);
         var result = RecuSolve(_createdMatrix, 0, 0, difficulty, mySolution);
-        _createdMatrix = mySolution[0].Clone();
         LockRandomCells();
         ClearUnlocked(_createdMatrix);
         TranslateAllValues(_createdMatrix);
+        _createdMatrix = mySolution[0].Clone();
         long mem = System.GC.GetTotalMemory(true);
         memory = string.Format("MEM: {0:f2}MB", mem / (1024f * 1024f));
         canSolve = result ? " VALID" : " INVALID";
